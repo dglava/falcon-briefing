@@ -34,6 +34,11 @@ PORT = 8000
 LOCAL_IP = socket.gethostbyname(socket.gethostname())
 ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
 
+class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
+    # suppres log messages of the http server
+    def log_message(self, format, *args):
+        return
+
 def get_falcon_path():
     reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
     try:
@@ -51,7 +56,7 @@ def remove_old_briefings(briefing_path):
 def run_http_server(path):
     # runs a HTTP server in the background, which serves the briefing files
     def http_server():
-        Handler = http.server.SimpleHTTPRequestHandler
+        Handler = SilentHTTPHandler
         httpd = socketserver.TCPServer(("", PORT), Handler)
         print("Briefings are served at http://{}/current-briefing.html".format(LOCAL_IP))
         httpd.serve_forever()
@@ -65,8 +70,12 @@ def watch_briefings(briefing_path):
     # to "current-briefing.html", which can then be opened by a browser
     for changes in watch(briefing_path):
         for change, path in changes:
-            if change == Change.added:
+            # the rename (replace) itself generates an event (change);
+            # the "not in path" filters those out, i.e. it only works on
+            # briefing files (those in xxxx-xx-xx_xxxxxx_briefing format)
+            if change == Change.added and "current-briefing.html" not in path:
                 os.replace(path, os.path.join(briefing_path, "current-briefing.html"))
+                print("Briefing saved — ready to be viewed")
 
 falcon_path = get_falcon_path()
 briefing_path = "{}\\User\\Briefings".format(falcon_path)
