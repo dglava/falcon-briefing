@@ -28,9 +28,11 @@ import os.path
 import sys
 import threading
 import winreg
+import ctypes
 
 PORT = 8000
 LOCAL_IP = socket.gethostbyname(socket.gethostname())
+ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
 
 def get_falcon_path():
     reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
