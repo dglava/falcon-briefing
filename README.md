@@ -26,10 +26,9 @@ That way all I ever have to do is start Falcon BMS, click on the "Print"
 when I view the briefing and click on the icon on my smartphone's home screen.
 
 ### Download
-If you want a simple EXE file for Windows, download it from below. Alternatively,
-use PyInstaller to compile your own from the provided source (see below notice for a reason to).
-
-###### [Version 0.1](https://github.com/dglava/falcon-briefing/releases/download/0.1/Falcon.Briefing.exe) — `sha1: c19cebf42ccf6a19ecad4f6b31c744796ba8a404`
+You can find a compiled EXE for Windows in the [Releases](https://github.com/dglava/falcon-briefing/releases).
+If you want to compile your own (see the notice below for a reason why),
+you can use [PyInstaller](https://www.pyinstaller.org/).
 
 **Notice: PyInstaller compiled Windows executables are sometimes falsely
 tagged as malware by various malware tools. See [this](https://github.com/pyinstaller/pyinstaller/issues?q=is%3Aissue+virus+is%3Aclosed),
