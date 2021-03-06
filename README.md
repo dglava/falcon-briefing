@@ -1,4 +1,4 @@
-# Falcon Briefing
+# Falcon Briefing ![](https://raw.githubusercontent.com/dglava/falcon-briefing/master/falcon-briefing.png)
 Utility to show the briefing files from Falcon BMS on your smartphone,
 tablet or any device running a web browser.
 
