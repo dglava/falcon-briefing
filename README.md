@@ -2,7 +2,7 @@
 Utility to show the briefing files from Falcon BMS on your smartphone,
 tablet or any device running a web browser.
 
-#### How to use
+### How to use
 1. Run the `falcon-briefing.py` Python file.
 2. Click the "Print" button when you are viewing a briefing inside Falcon BMS
 3. Open the address shown in the `falcon-briefing.py` window (Example: `http://192.168.1.100:8000/current-briefing.html`) with your smartphone's browser.
@@ -10,16 +10,21 @@ tablet or any device running a web browser.
 For it to work, you have to enable the "Briefing Output to File" and
 "HTML Briefings" options in Falcon BMS.
 
-#### Dependencies
+### Dependencies
 * Python 3
 * [Watchgod (Python module)](https://github.com/samuelcolvin/watchgod)
 
-#### Tip for Usage
+### Tip for Usage
 
 I compiled the script into a single-file executable for use on Windows
 using [PyInstaller](https://www.pyinstaller.org/). I placed the file somewhere on my disk and automatically start it whenever I open Falcon BMS. Then I also created a shortcut to the address the briefing is server at on my phone and placed it on the home screen.
 
 That way all I ever have to do is start Falcon BMS, click on the "Print" when I view the briefing and click on the icon on my smartphone's home screen.
+
+### Download
+If you want a simple EXE file for Windows, download it from below. Alternatively, use PyInstaller to compile your own from the provided source (see below notice for a reason to).
+
+###### [Version 0.1](https://github.com/dglava/falcon-briefing/releases/download/0.1/Falcon.Briefing.exe) — `sha1: c19cebf42ccf6a19ecad4f6b31c744796ba8a404`
 
 **Notice: PyInstaller compiled Windows executables are sometimes falsely tagged as malware by various malware tools. See [this](https://github.com/pyinstaller/pyinstaller/issues?q=is%3Aissue+virus+is%3Aclosed), [this](https://stackoverflow.com/questions/43777106/program-made-with-pyinstaller-now-seen-as-a-trojan-horse-by-avg) and [this](https://www.reddit.com/r/Python/comments/9ri81s/my_pyinstallercompiled_exe_progs_are_victims_of/).**
 
