@@ -45,7 +45,8 @@ def get_falcon_path():
         key = winreg.OpenKey(reg, r"SOFTWARE\WOW6432Node\Benchmark Sims\Falcon BMS 4.35")
         return winreg.QueryValueEx(key, "baseDir")[0]
     except FileNotFoundError:
-        print("Cannot find the Falcon BMS path in Windows Registry. Install broken?")
+        print("Cannot find the Falcon BMS path in the Windows Registry. Install broken?")
+        input("Press any key to close")
         sys.exit(1)
 
 def remove_old_briefings(briefing_path):
