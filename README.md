@@ -3,7 +3,9 @@ Utility to show the briefing files from Falcon BMS on your smartphone,
 tablet or any device running a web browser.
 
 ### How to use
-1. Run the `falcon-briefing.py` Python file.
+1. Run either:
+   * `falcon-briefing.py` with Python
+   * use the precompiled executable — [see #Download](#Download)
 2. Click the "Print" button when you are viewing a briefing inside Falcon BMS
 3. Open the address shown in the `falcon-briefing.py` window (Example: `http://192.168.1.100:8000/current-briefing.html`)
 with your smartphone's browser.
