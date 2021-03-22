@@ -1,6 +1,8 @@
-# Falcon Briefing ![](https://raw.githubusercontent.com/dglava/falcon-briefing/master/falcon-briefing.png)
+# Falcon Briefing ![](https://raw.githubusercontent.com/dglava/falcon-briefing/master/media/falcon-briefing.png)
 Utility to show the briefing files from Falcon BMS on your smartphone,
 tablet or any device running a web browser.
+
+![](https://raw.githubusercontent.com/dglava/falcon-briefing/master/media/video.gif)
 
 ### How to use
 1. Run either:
@@ -12,6 +14,8 @@ with your smartphone's browser.
 
 For it to work, you have to enable the "Briefing Output to File" and
 "HTML Briefings" options in Falcon BMS.
+
+Video of how it works: [https://streamable.com/gk743d](https://streamable.com/gk743d)
 
 ### Dependencies
 * Python 3
