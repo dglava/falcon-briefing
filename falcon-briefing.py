@@ -87,22 +87,22 @@ parser.add_argument(
 parser.add_argument(
     "-p", "--port",
     help="Port for the HTTP server",
+    type=int,
     default=8000
     )
 options = parser.parse_args()
 port = options.port
+briefing_path = options.briefings
 
 if os_name == "Linux":
-    if not options.briefings:
+    if not briefing_path:
         print("Please specify the briefing directory. See --help")
         sys.exit(1)
-    else:
-        briefing_path = options.briefings
 elif os_name == "Windows":
     ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
-
-    falcon_path = get_falcon_path()
-    briefing_path = "{}\\User\\Briefings".format(falcon_path)
+    if not briefing_path:
+        falcon_path = get_falcon_path()
+        briefing_path = "{}\\User\\Briefings".format(falcon_path)
 
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path, port)
