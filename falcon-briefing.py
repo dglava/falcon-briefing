@@ -20,6 +20,13 @@ except ImportError:
     print("Watchgod module missing. Please install watchgod")
     sys.exit(1)
 
+import platform
+os_name = platform.system()
+if os_name == "Windows":
+    import winreg
+    import ctypes
+
+import argparse
 import http.server
 import socket
 import socketserver
@@ -27,12 +34,6 @@ import os
 import os.path
 import sys
 import threading
-import winreg
-import ctypes
-
-PORT = 8000
-LOCAL_IP = socket.gethostbyname(socket.gethostname())
-ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
 
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     # suppres log messages of the http server
@@ -78,8 +79,27 @@ def watch_briefings(briefing_path):
                 os.replace(path, os.path.join(briefing_path, "current-briefing.html"))
                 print("Briefing saved — ready to be viewed")
 
-falcon_path = get_falcon_path()
-briefing_path = "{}\\User\\Briefings".format(falcon_path)
+parser = argparse.ArgumentParser()
+parser.add_argument("-b", "--briefings",
+    help="Path of the briefing directory. Usually in Falcon BMS\\User\\Briefings",
+    metavar="FOLDER"
+    )
+options = parser.parse_args()
+
+PORT = 8000
+LOCAL_IP = socket.gethostbyname(socket.gethostname())
+
+if os_name == "Linux":
+    if not options.briefings:
+        print("Please specify the briefing directory. See --help")
+        sys.exit(1)
+    else:
+        briefing_path = options.briefings
+elif os_name == "Windows":
+    ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
+
+    falcon_path = get_falcon_path()
+    briefing_path = "{}\\User\\Briefings".format(falcon_path)
 
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path)
