@@ -28,7 +28,6 @@ if os_name == "Windows":
 
 import argparse
 import http.server
-import socket
 import socketserver
 import os
 import os.path
@@ -55,12 +54,12 @@ def remove_old_briefings(briefing_path):
         if f.endswith(".html"):
             os.remove(os.path.join(briefing_path, f))
 
-def run_http_server(path):
+def run_http_server(path, port):
     # runs a HTTP server in the background, which serves the briefing files
     def http_server():
         Handler = SilentHTTPHandler
-        httpd = socketserver.TCPServer(("", PORT), Handler)
-        print("Briefings are served at http://{}/current-briefing.html".format(LOCAL_IP))
+        httpd = socketserver.TCPServer(("", port), Handler)
+        print("Briefings are served at http://localhost:{}/current-briefing.html".format(port))
         httpd.serve_forever()
 
     os.chdir(path)
@@ -80,14 +79,18 @@ def watch_briefings(briefing_path):
                 print("Briefing saved — ready to be viewed")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-b", "--briefings",
+parser.add_argument(
+    "-b", "--briefings",
     help="Path of the briefing directory. Usually in Falcon BMS\\User\\Briefings",
     metavar="FOLDER"
     )
+parser.add_argument(
+    "-p", "--port",
+    help="Port for the HTTP server",
+    default=8000
+    )
 options = parser.parse_args()
-
-PORT = 8000
-LOCAL_IP = socket.gethostbyname(socket.gethostname())
+port = options.port
 
 if os_name == "Linux":
     if not options.briefings:
@@ -102,5 +105,5 @@ elif os_name == "Windows":
     briefing_path = "{}\\User\\Briefings".format(falcon_path)
 
 remove_old_briefings(briefing_path)
-run_http_server(briefing_path)
+run_http_server(briefing_path, port)
 watch_briefings(briefing_path)
