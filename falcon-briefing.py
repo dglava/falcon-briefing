@@ -28,6 +28,7 @@ if os_name == "Windows":
 
 import argparse
 import http.server
+import socket
 import socketserver
 import os
 import os.path
@@ -56,10 +57,11 @@ def remove_old_briefings(briefing_path):
 
 def run_http_server(path, port):
     # runs a HTTP server in the background, which serves the briefing files
+    local_ip = socket.gethostbyname(socket.gethostname())
     def http_server():
         Handler = SilentHTTPHandler
         httpd = socketserver.TCPServer(("", port), Handler)
-        print("Briefings are served at http://localhost:{}/current-briefing.html".format(port))
+        print("Briefings are served at http://{}:{}/current-briefing.html".format(local_ip, port))
         httpd.serve_forever()
 
     os.chdir(path)

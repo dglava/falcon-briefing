@@ -6,7 +6,7 @@ tablet or any device running a web browser.
 1. Enable "Briefing Output to File" and "HTML Briefings" in the Falcon BMS options
 2. Run `falcon-briefing.py` with Python
 3. Click the "Print" button when you are viewing a briefing inside Falcon BMS
-4. Open the address shown in the `falcon-briefing.py` window (Example: `http://localhost:8000/current-briefing.html`)
+4. Open the address shown in the `falcon-briefing.py` window (Example: `http://192.168.1.100:8000/current-briefing.html`)
 with your smartphone's browser.
 
 ### Dependencies
