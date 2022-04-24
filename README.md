@@ -14,17 +14,10 @@ with your smartphone's browser.
 * [Watchgod (Python module)](https://github.com/samuelcolvin/watchgod)
 
 ### Tip for Usage
-
-You can create a Windows batch file to automatically start falcon-briefing
-together with Falcon BMS. Then create a shortcut for the address the briefing is
-being served at on your phone's homescreen. That way you just have to press
-"Print" in the briefing screen and click the shortcut on your phone's homescreen.
-
-Pre-compiled EXE files for Windows were hosted on Github, but I decided
-to remove them. They were always flagged as malware by most security software
-(see [this](https://github.com/pyinstaller/pyinstaller/issues?q=is%3Aissue+virus+is%3Aclosed),
-[this](https://stackoverflow.com/questions/43777106/program-made-with-pyinstaller-now-seen-as-a-trojan-horse-by-avg)
-and [this](https://www.reddit.com/r/Python/comments/9ri81s/my_pyinstallercompiled_exe_progs_are_victims_of/)).
-If you still need them for some reason, you can compile it yourself with PyInstaller.
+For ultimate convenience, as with my other [utility which randomizes the cockpit switches at startup](https://github.com/dglava/falcon-bcc),
+it is recommended to add it to a startup script, which would start it
+together with Falcon BMS. Also consider creating a shortcut to the address the briefing
+is being server at on your phone's homescreen. That way you just have to press "Print"
+in the briefing screen and click the shortcut on your phone's homescreen.
 
 License: [GPLv3](http://www.gnu.org/licenses/gpl-3.0.html)  
