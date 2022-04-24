@@ -35,6 +35,8 @@ import os.path
 import sys
 import threading
 
+bms_version = "4.36"
+
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     # suppres log messages of the http server
     def log_message(self, format, *args):
@@ -43,7 +45,7 @@ class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
 def get_falcon_path():
     reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
     try:
-        key = winreg.OpenKey(reg, r"SOFTWARE\WOW6432Node\Benchmark Sims\Falcon BMS 4.35")
+        key = winreg.OpenKey(reg, r"SOFTWARE\WOW6432Node\Benchmark Sims\Falcon BMS {}".format(bms_version))
         return winreg.QueryValueEx(key, "baseDir")[0]
     except FileNotFoundError:
         print("Cannot find the Falcon BMS path in the Windows Registry. Install broken?")
