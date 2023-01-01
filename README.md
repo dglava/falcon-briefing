@@ -11,7 +11,7 @@ with your smartphone's browser.
 
 ### Dependencies
 * Python 3
-* [Watchgod (Python module)](https://github.com/samuelcolvin/watchgod)
+* [Watchfiles (Python module)](https://github.com/samuelcolvin/watchfiles)
 
 ### Tip for Usage
 For ultimate convenience, as with my other [utility which randomizes the cockpit switches at startup](https://github.com/dglava/falcon-bcc),
