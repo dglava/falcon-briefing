@@ -15,9 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 try:
-    from watchgod import watch, Change
+    from watchfiles import watch, Change
 except ImportError:
-    print("Watchgod module missing. Please install watchgod")
+    print("Watchfiles module missing. Please install watchfiles")
     sys.exit(1)
 
 import platform
