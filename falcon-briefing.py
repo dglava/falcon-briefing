@@ -1,5 +1,5 @@
 # Falcon Briefing
-# Copyright (C) 2021 Dino Duratović <dinomol at mail dot com>
+# Copyright (C) 2021-2023 Dino Duratović <dinomol at mail dot com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import os.path
 import sys
 import threading
 
-bms_version = "4.36"
+bms_version = "4.37"
 
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     # suppres log messages of the http server
