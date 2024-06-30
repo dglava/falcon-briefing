@@ -20,12 +20,10 @@ except ImportError:
     print("Watchfiles module missing. Please install watchfiles")
     sys.exit(1)
 
-import platform
-os_name = platform.system()
-if os_name == "Windows":
-    import winreg
-    import ctypes
-
+import ctypes
+import struct
+import mmap
+from enum import IntEnum
 import argparse
 import http.server
 import socket
@@ -34,23 +32,89 @@ import os
 import os.path
 import sys
 import threading
+import time
 
-bms_version = "4.37"
+class StringIdentifier(IntEnum):
+    BmsExe = 0
+    KeyFile = 1
+    BmsBasedir = 2
+    BmsBinDirectory = 3
+    BmsDataDirectory = 4
+    BmsUIArtDirectory = 5
+    BmsUserDirectory = 6
+    BmsAcmiDirectory = 7
+    BmsBriefingsDirectory = 8
+    BmsConfigDirectory = 9
+    BmsLogsDirectory = 10
+    BmsPatchDirectory = 11
+    BmsPictureDirectory = 12
+    ThrName = 13
+    ThrCampaigndir = 14
+    ThrTerraindir = 15
+    ThrArtdir = 16
+    ThrMoviedir = 17
+    ThrUisounddir = 18
+    ThrObjectdir = 19
+    Thr3ddatadir = 20
+    ThrMisctexdir = 21
+    ThrSounddir = 22
+    ThrTacrefdir = 23
+    ThrSplashdir = 24
+    ThrCockpitdir = 25
+    ThrSimdatadir = 26
+    ThrSubtitlesdir = 27
+    ThrTacrefpicsdir = 28
+    AcName = 29
+    AcNCTR = 30
+    ButtonsFile = 31
+    CockpitFile = 32
+    NavPoint = 33
+    ThrTerrdatadir = 34
 
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     # suppres log messages of the http server
     def log_message(self, format, *args):
         return
 
+def read_shared_memory():
+    """Reads the Falcon BMS shared memory and returns its content.
+
+    It reads just the part of the shared memory which holds the various strings.
+    Returns a list of lists in the form of ((string, data), (string, data), ...
+    See StringIdentifier() for the exact layout.
+    """
+    shm = mmap.mmap(-1, 1024 * 1024, "FalconSharedMemoryAreaString", access=mmap.ACCESS_READ)
+    version_num = struct.unpack('I', shm.read(4))[0]
+    num_strings = struct.unpack('I', shm.read(4))[0]
+    data_size = struct.unpack('I', shm.read(4))[0]
+    strings_list = []
+    for _ in range(num_strings):
+        str_id = struct.unpack('I', shm.read(4))[0]
+        str_length = struct.unpack('I', shm.read(4))[0]
+        str_data = shm.read(str_length + 1).decode('utf-8').rstrip('\x00')
+        identifier = StringIdentifier(str_id).name
+        strings_list.append((identifier, str_data))
+    return strings_list
+
+def wait_falcon_running():
+    print("Waiting for Falcon BMS to start...")
+    while True:
+        data = read_shared_memory()
+        # verifies by checking if the strings are populated
+        if data and data[8][1]:
+            print("Falcon BMS started.")
+            break
+        time.sleep(1)
+
 def get_falcon_path():
-    reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-    try:
-        key = winreg.OpenKey(reg, r"SOFTWARE\WOW6432Node\Benchmark Sims\Falcon BMS {}".format(bms_version))
-        return winreg.QueryValueEx(key, "baseDir")[0]
-    except FileNotFoundError:
-        print("Cannot find the Falcon BMS path in the Windows Registry. Install broken?")
-        input("Press any key to close")
-        sys.exit(1)
+    strings = read_shared_memory()
+    falcon_path = strings[2][1]
+    return falcon_path
+
+def get_briefing_path():
+    strings = read_shared_memory()
+    briefing_path = strings[8][1]
+    return briefing_path
 
 def remove_old_briefings(briefing_path):
     for f in os.listdir(briefing_path):
@@ -84,11 +148,6 @@ def watch_briefings(briefing_path):
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-b", "--briefings",
-    help="Path of the briefing directory. Usually in Falcon BMS\\User\\Briefings",
-    metavar="FOLDER"
-    )
-parser.add_argument(
     "-p", "--port",
     help="Port for the HTTP server",
     type=int,
@@ -96,18 +155,11 @@ parser.add_argument(
     )
 options = parser.parse_args()
 port = options.port
-briefing_path = options.briefings
 
-if os_name == "Linux":
-    if not briefing_path:
-        print("Please specify the briefing directory. See --help")
-        sys.exit(1)
-elif os_name == "Windows":
-    ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
-    if not briefing_path:
-        falcon_path = get_falcon_path()
-        briefing_path = "{}\\User\\Briefings".format(falcon_path)
-
+ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
+wait_falcon_running()
+falcon_path = get_falcon_path()
+briefing_path = get_briefing_path()
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path, port)
 watch_briefings(briefing_path)
