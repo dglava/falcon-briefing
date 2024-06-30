@@ -99,22 +99,35 @@ def read_shared_memory():
 def wait_falcon_running():
     print("Waiting for Falcon BMS to start...")
     while True:
-        data = read_shared_memory()
+        strings = read_shared_memory()
         # verifies by checking if the strings are populated
-        if data and data[8][1]:
+        if strings and strings[9][1]:
             print("Falcon BMS started.")
-            break
+            return strings
         time.sleep(1)
 
-def get_falcon_path():
-    strings = read_shared_memory()
+def get_falcon_path(strings):
     falcon_path = strings[2][1]
     return falcon_path
 
-def get_briefing_path():
-    strings = read_shared_memory()
+def get_briefing_path(strings):
     briefing_path = strings[8][1]
     return briefing_path
+
+def verify_html_output_option(strings):
+    """Verifies that the proper options are set inside Falcon BMS."""
+    config_path = strings[9][1]
+    config_file = open("{}\\falcon bms.cfg".format(config_path))
+    for i in config_file:
+        if i.strip().startswith("set g_nPrintToFile") and i.strip().endswith("0"):
+            print("Option 'Briefing Output to File' is turned off - must be enabled. Exiting...")
+            sys.exit(1)
+        if i.strip().startswith("set g_bAppendToBriefingFile") and i.strip().endswith("1"):
+            print("Option 'Append New Briefings' is turned on - must be turned off. Exiting...")
+            sys.exit(1)
+        if i.strip().startswith("set g_bBriefHTML") and i.strip().endswith("0"):
+            print("Option 'HTML Briefings' is turned off - must be turned on. Exiting...")
+            sys.exit(1)
 
 def remove_old_briefings(briefing_path):
     for f in os.listdir(briefing_path):
@@ -122,7 +135,7 @@ def remove_old_briefings(briefing_path):
             os.remove(os.path.join(briefing_path, f))
 
 def run_http_server(path, port):
-    # runs a HTTP server in the background, which serves the briefing files
+    """Runs a HTTP server in the background, which serves the briefing files."""
     local_ip = socket.gethostbyname(socket.gethostname())
     def http_server():
         Handler = SilentHTTPHandler
@@ -135,11 +148,14 @@ def run_http_server(path, port):
     thread.start()
 
 def watch_briefings(briefing_path):
-    # waits for new files in the directory and renames every new file
-    # to "current-briefing.html", which can then be opened by a browser
+    """Waits for new files in the directory and renames them.
+
+    Practically the main loop of the utility. Watches the folder with
+    the briefings for changes and renames new briefings appropriately.
+    """
     for changes in watch(briefing_path):
         for change, path in changes:
-            # the rename (replace) itself generates an event (change);
+            # the rename (os.replace) itself generates an event (change);
             # the "not in path" filters those out, i.e. it only works on
             # briefing files (those in xxxx-xx-xx_xxxxxx_briefing format)
             if change == Change.added and "current-briefing.html" not in path:
@@ -157,9 +173,10 @@ options = parser.parse_args()
 port = options.port
 
 ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
-wait_falcon_running()
-falcon_path = get_falcon_path()
-briefing_path = get_briefing_path()
+strings = wait_falcon_running()
+verify_html_output_option(strings)
+falcon_path = get_falcon_path(strings)
+briefing_path = get_briefing_path(strings)
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path, port)
 watch_briefings(briefing_path)
