@@ -1,5 +1,5 @@
 # Falcon Briefing
-# Copyright (C) 2021-2023 Dino Duratović <dinomol at mail dot com>
+# Copyright (C) 2021-2024 Dino Duratović <dinomol at mail dot com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
