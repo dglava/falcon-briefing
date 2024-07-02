@@ -72,7 +72,7 @@ class StringIdentifier(IntEnum):
     ThrTerrdatadir = 34
 
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
-    # suppres log messages of the http server
+    """Suppress log messages of the http server."""
     def log_message(self, format, *args):
         return
 
@@ -99,35 +99,48 @@ def read_shared_memory():
 def wait_falcon_running():
     print("Waiting for Falcon BMS to start...")
     while True:
-        strings = read_shared_memory()
+        falcon_strings = read_shared_memory()
         # verifies by checking if the strings are populated
-        if strings and strings[9][1]:
+        if falcon_strings and falcon_strings[9][1]:
             print("Falcon BMS started.")
-            return strings
+            return falcon_strings
         time.sleep(1)
 
-def get_falcon_path(strings):
-    falcon_path = strings[2][1]
-    return falcon_path
+def get_config_path(config):
+    if config == "falcon":
+        return r"{}\falcon bms.cfg".format(falcon_strings[9][1])
+    elif config == "user":
+        return r"{}\Falcon BMS User.cfg".format(falcon_strings[9][1])
+
+def read_config_file(config_file_path):
+    with open(config_file_path, "r") as config_file:
+        config = []
+        for line in config_file:
+            if line.startswith("set"):
+                config.append(line.strip().split())
+        return config
+
+def verify_options(config_content):
+    print_file = False
+    append_briefing = False
+    briefing_html = False
+    for line in config_content:
+        if line[1] == "g_nPrintToFile" and line[2] == "1":
+            print_file = True
+        elif line[1] == "g_bAppendToBriefingFile" and line[2] == "0":
+            append_briefing = True
+        elif line[1] == "g_bBriefHTML" and line[2] == "1":
+            briefing_html = True
+    return print_file & append_briefing & briefing_html
+
+def options_are_set(config_content):
+    for line in config_content:
+        if line[1] in ["g_nPrintToFile", "g_bAppendToBriefingFile", "g_bBriefHTML"]:
+            return True
 
 def get_briefing_path(strings):
     briefing_path = strings[8][1]
     return briefing_path
-
-def verify_html_output_option(strings):
-    """Verifies that the proper options are set inside Falcon BMS."""
-    config_path = strings[9][1]
-    config_file = open("{}\\falcon bms.cfg".format(config_path))
-    for i in config_file:
-        if i.strip().startswith("set g_nPrintToFile") and i.strip().endswith("0"):
-            print("Option 'Briefing Output to File' is turned off - must be enabled. Exiting...")
-            sys.exit(1)
-        if i.strip().startswith("set g_bAppendToBriefingFile") and i.strip().endswith("1"):
-            print("Option 'Append New Briefings' is turned on - must be turned off. Exiting...")
-            sys.exit(1)
-        if i.strip().startswith("set g_bBriefHTML") and i.strip().endswith("0"):
-            print("Option 'HTML Briefings' is turned off - must be turned on. Exiting...")
-            sys.exit(1)
 
 def remove_old_briefings(briefing_path):
     for f in os.listdir(briefing_path):
@@ -173,10 +186,25 @@ options = parser.parse_args()
 port = options.port
 
 ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
-strings = wait_falcon_running()
-verify_html_output_option(strings)
-falcon_path = get_falcon_path(strings)
-briefing_path = get_briefing_path(strings)
+
+falcon_strings = wait_falcon_running()
+falcon_config_path = get_config_path("falcon")
+user_config_path = get_config_path("user")
+falcon_config_content = read_config_file(falcon_config_path)
+user_config_content = read_config_file(user_config_path)
+
+if verify_options(user_config_content):
+    print("All options are correctly set.")
+elif verify_options(falcon_config_content) and not options_are_set(user_config_content):
+    print("All options are correctly set.")
+else:
+    print("Options are not set correctly. Please add these to your config file:")
+    print("g_bBriefHTML 1")
+    print("g_nPrintToFile 1")
+    print("g_bAppendToBriefingFile 0")
+    sys.exit(1)
+
+briefing_path = get_briefing_path(falcon_strings)
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path, port)
 watch_briefings(briefing_path)
