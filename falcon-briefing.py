@@ -99,6 +99,14 @@ def read_shared_memory():
         strings_list.append((identifier, str_data))
     return strings_list
 
+def falcon_running():
+    shared_mem_strings = read_shared_memory()
+    if shared_mem_strings and shared_mem_strings[9][1]:
+        return True
+
+def get_falcon_strings():
+    return read_shared_memory()
+
 def wait_falcon_running():
     notify("Waiting for Falcon BMS to start")
     while True:
@@ -190,7 +198,12 @@ port = options.port
 
 ctypes.windll.kernel32.SetConsoleTitleW("Falcon Briefing")
 
-falcon_strings = wait_falcon_running()
+notify("Waiting for Falcon BMS to start")
+while not falcon_running():
+    time.sleep(2)
+notify("Falcon BMS started")
+
+falcon_strings = get_falcon_strings()
 falcon_config_path = get_config_path("falcon")
 user_config_path = get_config_path("user")
 falcon_config_content = read_config_file(falcon_config_path)
