@@ -71,6 +71,9 @@ class StringIdentifier(IntEnum):
     NavPoint = 33
     ThrTerrdatadir = 34
 
+def notify(message):
+    print("[Falcon-Briefing]: {}".format(message))
+
 class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     """Suppress log messages of the http server."""
     def log_message(self, format, *args):
@@ -97,7 +100,7 @@ def read_shared_memory():
     return strings_list
 
 def wait_falcon_running():
-    print("Waiting for Falcon BMS to start...")
+    notify("Waiting for Falcon BMS to start")
     while True:
         falcon_strings = read_shared_memory()
         # verifies by checking if the strings are populated
@@ -153,7 +156,7 @@ def run_http_server(path, port):
     def http_server():
         Handler = SilentHTTPHandler
         httpd = socketserver.TCPServer(("", port), Handler)
-        print("Briefings are served at http://{}:{}/current-briefing.html".format(local_ip, port))
+        notify("Briefings are served at http://{}:{}/current-briefing.html".format(local_ip, port))
         httpd.serve_forever()
 
     os.chdir(path)
@@ -173,7 +176,7 @@ def watch_briefings(briefing_path):
             # briefing files (those in xxxx-xx-xx_xxxxxx_briefing format)
             if change == Change.added and "current-briefing.html" not in path:
                 os.replace(path, os.path.join(briefing_path, "current-briefing.html"))
-                print("Briefing saved — ready to be viewed")
+                notify("Briefing saved — ready to be viewed")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -194,14 +197,14 @@ falcon_config_content = read_config_file(falcon_config_path)
 user_config_content = read_config_file(user_config_path)
 
 if verify_options(user_config_content):
-    print("All options are correctly set.")
+    notify("All options are correctly set")
 elif verify_options(falcon_config_content) and not options_are_set(user_config_content):
-    print("All options are correctly set.")
+    notify("All options are correctly set")
 else:
-    print("Options are not set correctly. Please add these to your config file:")
-    print("g_bBriefHTML 1")
-    print("g_nPrintToFile 1")
-    print("g_bAppendToBriefingFile 0")
+    notify("Options are not set correctly. Please add these to your config file:")
+    notify("g_bBriefHTML 1")
+    notify("g_nPrintToFile 1")
+    notify("g_bAppendToBriefingFile 0")
     sys.exit(1)
 
 briefing_path = get_briefing_path(falcon_strings)
