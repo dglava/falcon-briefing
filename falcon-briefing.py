@@ -23,7 +23,6 @@ except ImportError:
 import ctypes
 import struct
 import mmap
-from enum import IntEnum
 import argparse
 import http.server
 import socket
@@ -34,42 +33,72 @@ import sys
 import threading
 import time
 
-class StringIdentifier(IntEnum):
-    BmsExe = 0
-    KeyFile = 1
-    BmsBasedir = 2
-    BmsBinDirectory = 3
-    BmsDataDirectory = 4
-    BmsUIArtDirectory = 5
-    BmsUserDirectory = 6
-    BmsAcmiDirectory = 7
-    BmsBriefingsDirectory = 8
-    BmsConfigDirectory = 9
-    BmsLogsDirectory = 10
-    BmsPatchDirectory = 11
-    BmsPictureDirectory = 12
-    ThrName = 13
-    ThrCampaigndir = 14
-    ThrTerraindir = 15
-    ThrArtdir = 16
-    ThrMoviedir = 17
-    ThrUisounddir = 18
-    ThrObjectdir = 19
-    Thr3ddatadir = 20
-    ThrMisctexdir = 21
-    ThrSounddir = 22
-    ThrTacrefdir = 23
-    ThrSplashdir = 24
-    ThrCockpitdir = 25
-    ThrSimdatadir = 26
-    ThrSubtitlesdir = 27
-    ThrTacrefpicsdir = 28
-    AcName = 29
-    AcNCTR = 30
-    ButtonsFile = 31
-    CockpitFile = 32
-    NavPoint = 33
-    ThrTerrdatadir = 34
+class Strings():
+    name = "FalconSharedMemoryAreaString"
+    area_size_max = 1024 * 1024
+    id = [
+        "BmsExe",
+        "KeyFile",
+        "BmsBasedir",
+        "BmsBinDirectory",
+        "BmsDataDirectory",
+        "BmsUIArtDirectory",
+        "BmsUserDirectory",
+        "BmsAcmiDirectory",
+        "BmsBriefingsDirectory",
+        "BmsConfigDirectory",
+        "BmsLogsDirectory",
+        "BmsPatchDirectory",
+        "BmsPictureDirectory",
+        "ThrName",
+        "ThrCampaigndir",
+        "ThrTerraindir",
+        "ThrArtdir",
+        "ThrMoviedir",
+        "ThrUisounddir",
+        "ThrObjectdir",
+        "Thr3ddatadir",
+        "ThrMisctexdir",
+        "ThrSounddir",
+        "ThrTacrefdir",
+        "ThrSplashdir",
+        "ThrCockpitdir",
+        "ThrSimdatadir",
+        "ThrSubtitlesdir",
+        "ThrTacrefpicsdir",
+        "AcName",
+        "AcNCTR",
+        "ButtonsFile",
+        "CockpitFile",
+        "NavPoint",
+        "ThrTerrdatadir"
+    ]
+
+    def add(self, id, value):
+        setattr(self, id, value)
+
+def read_shared_memory_strings():
+    """Reads the Falcon BMS shared memory and returns its content.
+
+    It reads just the part of the shared memory which holds the various strings.
+    Returns a String() instance with the strings as object attributes.
+    """
+    try:
+        sm = mmap.mmap(-1, Strings.area_size_max, Strings.name, access=mmap.ACCESS_READ)
+        version_num = struct.unpack('I', sm.read(4))[0]
+        num_strings = struct.unpack('I', sm.read(4))[0]
+        data_size = struct.unpack('I', sm.read(4))[0]
+        instance = Strings()
+        for id in Strings.id:
+            str_id = struct.unpack('I', sm.read(4))[0]
+            str_length = struct.unpack('I', sm.read(4))[0]
+            str_data = sm.read(str_length + 1).decode('utf-8').rstrip('\x00')
+            instance.add(id, str_data)
+        sm.close()
+        return instance
+    except Exception as e:
+        print("Error reading shared memory '{}': {}".format(Strings.name, e))
+        return None
 
 def notify(message):
     print("[Falcon-Briefing]: {}".format(message))
@@ -79,49 +108,10 @@ class SilentHTTPHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
-def read_shared_memory():
-    """Reads the Falcon BMS shared memory and returns its content.
-
-    It reads just the part of the shared memory which holds the various strings.
-    Returns a list of lists in the form of ((string, data), (string, data), ...
-    See StringIdentifier() for the exact layout.
-    """
-    shm = mmap.mmap(-1, 1024 * 1024, "FalconSharedMemoryAreaString", access=mmap.ACCESS_READ)
-    version_num = struct.unpack('I', shm.read(4))[0]
-    num_strings = struct.unpack('I', shm.read(4))[0]
-    data_size = struct.unpack('I', shm.read(4))[0]
-    strings_list = []
-    for _ in range(num_strings):
-        str_id = struct.unpack('I', shm.read(4))[0]
-        str_length = struct.unpack('I', shm.read(4))[0]
-        str_data = shm.read(str_length + 1).decode('utf-8').rstrip('\x00')
-        identifier = StringIdentifier(str_id).name
-        strings_list.append((identifier, str_data))
-    return strings_list
-
 def falcon_running():
-    shared_mem_strings = read_shared_memory()
-    if shared_mem_strings and shared_mem_strings[9][1]:
+    strings = read_shared_memory_strings()
+    if strings.BmsBriefingsDirectory:
         return True
-
-def get_falcon_strings():
-    return read_shared_memory()
-
-def wait_falcon_running():
-    notify("Waiting for Falcon BMS to start")
-    while True:
-        falcon_strings = read_shared_memory()
-        # verifies by checking if the strings are populated
-        if falcon_strings and falcon_strings[9][1]:
-            print("Falcon BMS started.")
-            return falcon_strings
-        time.sleep(1)
-
-def get_config_path(config):
-    if config == "falcon":
-        return r"{}\falcon bms.cfg".format(falcon_strings[9][1])
-    elif config == "user":
-        return r"{}\Falcon BMS User.cfg".format(falcon_strings[9][1])
 
 def read_config_file(config_file_path):
     with open(config_file_path, "r") as config_file:
@@ -144,14 +134,10 @@ def verify_options(config_content):
             briefing_html = True
     return print_file & append_briefing & briefing_html
 
-def options_are_set(config_content):
+def options_are_set_in(config_content):
     for line in config_content:
         if line[1] in ["g_nPrintToFile", "g_bAppendToBriefingFile", "g_bBriefHTML"]:
             return True
-
-def get_briefing_path(strings):
-    briefing_path = strings[8][1]
-    return briefing_path
 
 def remove_old_briefings(briefing_path):
     for f in os.listdir(briefing_path):
@@ -203,15 +189,17 @@ while not falcon_running():
     time.sleep(2)
 notify("Falcon BMS started")
 
-falcon_strings = get_falcon_strings()
-falcon_config_path = get_config_path("falcon")
-user_config_path = get_config_path("user")
+falcon_strings = read_shared_memory_strings()
+falcon_config_path = r"{}\falcon bms.cfg".format(falcon_strings.BmsConfigDirectory)
+user_config_path = r"{}\Falcon BMS User.cfg".format(falcon_strings.BmsConfigDirectory)
 falcon_config_content = read_config_file(falcon_config_path)
 user_config_content = read_config_file(user_config_path)
 
 if verify_options(user_config_content):
     notify("All options are correctly set")
-elif verify_options(falcon_config_content) and not options_are_set(user_config_content):
+# cannot just check if the falcon config options are correct, because the user options
+# take precedence and if they lack just one of the required ones, it might not work
+elif verify_options(falcon_config_content) and not options_are_set_in(user_config_content):
     notify("All options are correctly set")
 else:
     notify("Options are not set correctly. Please add these to your config file:")
@@ -220,7 +208,7 @@ else:
     notify("g_bAppendToBriefingFile 0")
     sys.exit(1)
 
-briefing_path = get_briefing_path(falcon_strings)
+briefing_path = falcon_strings.BmsBriefingsDirectory
 remove_old_briefings(briefing_path)
 run_http_server(briefing_path, port)
 watch_briefings(briefing_path)
