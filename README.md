@@ -1,6 +1,7 @@
 # Falcon Briefing
 Utility to show the briefing files from Falcon BMS on your smartphone,
-tablet or any device running a web browser.
+tablet or any device running a web browser. It works on Falcon BMS 4.37
+only (not tested on Falcon BMS 4.38).
 
 ### How to use
 1. Enable "Briefing Output to File" and "HTML Briefings" in the Falcon BMS options
@@ -10,6 +11,7 @@ tablet or any device running a web browser.
 with your smartphone's browser.
 
 ### Dependencies
+* Falcon BMS 4.37
 * Python 3
 * [Watchfiles (Python module)](https://github.com/samuelcolvin/watchfiles)
 
